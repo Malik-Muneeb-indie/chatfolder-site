@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatFolder — The AI Workspace for LinkedIn Creators & SaaS Founders</title>
+<meta name="description" content="Stop drowning in 1,000 unnamed ChatGPT chats. ChatFolder adds folders, search, a prompt library, and cross-device sync — built for creators who use AI to build their brand.">
+<link rel="icon" href="icon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --black:       #07080c;
+  --surface-1:   #0d0f16;
+  --surface-2:   #131620;
+  --surface-3:   #1a1d2e;
+  --surface-4:   #222540;
+  --border:      rgba(255,255,255,0.07);
+  --border-glow: rgba(16,185,129,0.25);
+
+  --emerald:     #10B981;
+  --emerald-dim: rgba(16,185,129,0.15);
+  --emerald-glow:rgba(16,185,129,0.08);
+  --violet:      #8B5CF6;
+  --violet-dim:  rgba(139,92,246,0.15);
+
+  --white:       #f1f3f6;
+  --white-70:    rgba(241,243,246,0.7);
+  --white-60:    rgba(241,243,246,0.6);
+  --white-50:    rgba(241,243,246,0.5);
+  --white-40:    rgba(241,243,246,0.4);
+  --white-20:    rgba(241,243,246,0.2);
+  --white-10:    rgba(241,243,246,0.1);
+  --white-05:    rgba(241,243,246,0.05);
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans:    'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* grain overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: .5;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+.container--narrow { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+.reveal-delay-3 { transition-delay: .3s; }
+.reveal-delay-4 { transition-delay: .4s; }
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 18px 0;
+  transition: background .3s, backdrop-filter .3s, border-color .3s;
+  border-bottom: 1px solid transparent;
+}
+.nav.scrolled {
+  background: rgba(7,8,12,0.85);
+  backdrop-filter: blur(20px);
+  border-color: var(--border);
+}
+.nav__inner {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav__logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-sans);
+  font-weight: 700; font-size: 18px; letter-spacing: -.01em;
+}
+.nav__logo-mark {
+  width: 32px; height: 32px;
+  background: var(--emerald);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav__logo-mark svg { width: 18px; height: 18px; }
+.nav__links {
+  display: flex; align-items: center; gap: 32px;
+  list-style: none;
+}
+.nav__links a {
+  font-size: 14px; font-weight: 500; color: var(--white-70);
+  transition: color .2s;
+  font-family: var(--font-sans);
+  letter-spacing: .02em;
+}
+.nav__links a:hover { color: var(--white); }
+.nav__cta {
+  display: flex; align-items: center; gap: 12px;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer; border: none;
+  transition: all .22s ease;
+  white-space: nowrap;
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--white-70);
+  border: 1px solid var(--border);
+}
+.btn--ghost:hover {
+  background: var(--white-05);
+  color: var(--white);
+  border-color: var(--white-20);
+}
+.btn--primary {
+  background: var(--emerald);
+  color: #05231a;
+  box-shadow: 0 0 24px rgba(16,185,129,.35);
+}
+.btn--primary:hover {
+  background: #0dcf93;
+  box-shadow: 0 0 36px rgba(16,185,129,.5);
+  transform: translateY(-1px);
+}
+.btn--primary:active { transform: translateY(0); }
+.btn--large {
+  padding: 14px 32px;
+  font-size: 16px;
+}
+.btn--xl {
+  padding: 16px 40px;
+  font-size: 17px;
+}
+.btn svg { flex-shrink: 0; }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  padding: 120px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* background glow blobs */
+.hero__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.hero__blob--1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(16,185,129,.12) 0%, transparent 70%);
+  top: -200px; left: -100px;
+  animation: blob-drift 12s ease-in-out infinite alternate;
+}
+.hero__blob--2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(139,92,246,.1) 0%, transparent 70%);
+  bottom: -100px; right: -50px;
+  animation: blob-drift 15s ease-in-out infinite alternate-reverse;
+}
+.hero__blob--3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(16,185,129,.06) 0%, transparent 70%);
+  top: 40%; left: 60%;
+  animation: blob-drift 9s ease-in-out infinite alternate;
+}
+@keyframes blob-drift {
+  0% { transform: translate(0,0) scale(1); }
+  100% { transform: translate(30px, 20px) scale(1.05); }
+}
+
+/* grid lines */
+.hero__grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative; z-index: 1;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto; padding: 0 24px;
+}
+
+.hero__badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,.3);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 13px; font-weight: 500;
+  color: var(--emerald);
+  font-family: var(--font-sans);
+  letter-spacing: .04em;
+  margin-bottom: 32px;
+  animation: fadeInDown .6s ease both;
+}
+.hero__badge-dot {
+  width: 6px; height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  animation: pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .6; transform: scale(1.4); }
+}
+
+.hero__headline {
+  font-family: var(--font-display);
+  font-size: clamp(42px, 6vw, 78px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -.02em;
+  margin-bottom: 24px;
+  animation: fadeInUp .7s ease .1s both;
+}
+.hero__headline em {
+  font-style: italic;
+  color: var(--emerald);
+  position: relative;
+}
+.hero__headline em::after {
+  content: '';
+  position: absolute;
+  bottom: 4px; left: 0; right: 0;
+  height: 3px;
+  background: var(--emerald);
+  border-radius: 2px;
+  opacity: .4;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: underline-in .8s ease .8s both;
+}
+@keyframes underline-in { to { transform: scaleX(1); } }
+
+.hero__sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--white-70);
+  line-height: 1.65;
+  max-width: 600px;
+  margin: 0 auto 40px;
+  font-weight: 300;
+  animation: fadeInUp .7s ease .2s both;
+}
+.hero__sub strong { color: var(--white); font-weight: 500; }
+
+.hero__actions {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap;
+  margin-bottom: 16px;
+  animation: fadeInUp .7s ease .3s both;
+}
+.hero__meta {
+  font-size: 13px; color: var(--white-40);
+  font-family: var(--font-body);
+  animation: fadeInUp .7s ease .4s both;
+}
+.hero__meta span { color: var(--white-70); }
+
+/* floating UI mockup */
+.hero__mockup {
+  position: relative;
+  margin: 72px auto 0;
+  max-width: 900px;
+  padding: 0 24px;
+  animation: fadeInUp .9s ease .5s both;
+}
+.hero__mockup-glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(16,185,129,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.mockup-window {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 0 1px var(--border);
+}
+.mockup-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 18px;
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--border);
+}
+.mockup-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+}
+.mockup-dot--r { background: #ff5f57; }
+.mockup-dot--y { background: #ffbd2e; }
+.mockup-dot--g { background: #28c840; }
+.mockup-url {
+  flex: 1;
+  background: var(--surface-4);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px; color: var(--white-40);
+  font-family: var(--font-body);
+  text-align: center;
+}
+.mockup-body {
+  display: grid; grid-template-columns: 260px 1fr;
+  height: 420px;
+}
+.mockup-sidebar {
+  background: var(--surface-3);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  overflow: hidden;
+}
+.mockup-sidebar-header {
+  font-family: var(--font-sans);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--white-40);
+  margin-bottom: 12px; padding: 0 4px;
+}
+.folder-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  cursor: default;
+  transition: background .15s;
+}
+.folder-item:hover { background: var(--white-05); }
+.folder-item.active { background: var(--emerald-dim); }
+.folder-icon {
+  width: 28px; height: 22px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  position: relative;
+}
+.folder-icon::before {
+  content: '';
+  position: absolute;
+  top: -4px; left: 0;
+  width: 12px; height: 5px;
+  border-radius: 2px 5px 0 0;
+  background: inherit;
+}
+.fi--green { background: rgba(16,185,129,.6); }
+.fi--violet { background: rgba(139,92,246,.6); }
+.fi--amber { background: rgba(245,158,11,.6); }
+.fi--blue { background: rgba(59,130,246,.6); }
+.fi--rose { background: rgba(244,63,94,.6); }
+.fi--teal { background: rgba(20,184,166,.6); }
+.folder-label {
+  font-size: 13px; font-weight: 500;
+  color: var(--white-70); flex: 1;
+  font-family: var(--font-body);
+}
+.folder-item.active .folder-label { color: var(--emerald); }
+.folder-count {
+  font-size: 11px; color: var(--white-40);
+  background: var(--white-05);
+  padding: 1px 6px; border-radius: 10px;
+  font-family: var(--font-body);
+}
+.folder-item.active .folder-count { color: var(--emerald); background: var(--emerald-dim); }
+
+.mockup-divider { height: 1px; background: var(--border); margin: 10px 0; }
+.mockup-section-label {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--white-40); padding: 0 4px; margin-bottom: 8px;
+  font-family: var(--font-sans); font-weight: 600;
+}
+
+.tag-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 6px; margin-bottom: 2px;
+}
+.tag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.tag-label { font-size: 12px; color: var(--white-60); font-family: var(--font-body); }
+
+.mockup-main {
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+}
+.chat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.chat-header-title {
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 600;
+  color: var(--emerald);
+}
+.chat-tags-row {
+  display: flex; gap: 6px;
+}
+.chat-tag {
+  font-size: 11px; padding: 3px 8px; border-radius: 20px;
+  font-family: var(--font-body); font-weight: 500;
+}
+.ct--g { background: rgba(16,185,129,.15); color: var(--emerald); }
+.ct--v { background: rgba(139,92,246,.15); color: #a78bfa; }
+.ct--a { background: rgba(245,158,11,.15); color: #fbbf24; }
+
+.chat-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  transition: border-color .2s;
+}
+.chat-item:hover { border-color: rgba(255,255,255,.12); }
+.chat-item.featured { border-color: rgba(16,185,129,.25); background: rgba(16,185,129,.04); }
+.chat-avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.chat-content { flex: 1; min-width: 0; }
+.chat-title {
+  font-size: 13px; font-weight: 500; color: var(--white);
+  margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--font-body);
+}
+.chat-preview { font-size: 11px; color: var(--white-40); font-family: var(--font-body); }
+.chat-time { font-size: 11px; color: var(--white-40); font-family: var(--font-body); flex-shrink: 0; }
+
+.mockup-command {
+  position: absolute; bottom: 16px; left: 20px; right: 20px;
+  background: var(--surface-4);
+  border: 1px solid rgba(16,185,129,.3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 0 20px rgba(16,185,129,.08);
+}
+.cmd-icon { font-size: 16px; }
+.cmd-text { font-size: 13px; color: var(--white-70); font-family: var(--font-body); flex: 1; }
+.cmd-kbd {
+  font-size: 10px; color: var(--white-40);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px;
+  font-family: var(--font-body);
+}
+
+@keyframes fadeInDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeInUp   { from { opacity:0; transform:translateY(24px);  } to { opacity:1; transform:translateY(0); } }
+
+/* ============================================================
+   SOCIAL PROOF BAR
+   ============================================================ */
+.proof-bar {
+  padding: 28px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+}
+.proof-bar__inner {
+  display: flex; align-items: center; justify-content: center;
+  gap: 48px; flex-wrap: wrap;
+}
+.proof-stat { text-align: center; }
+.proof-stat__num {
+  font-family: var(--font-sans);
+  font-size: 26px; font-weight: 700;
+  color: var(--white); display: block;
+  letter-spacing: -.02em;
+}
+.proof-stat__label {
+  font-size: 12px; color: var(--white-40);
+  font-family: var(--font-body);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.proof-divider { width: 1px; height: 40px; background: var(--border); }
+.stars { color: #fbbf24; font-size: 14px; display: block; margin-bottom: 2px; }
+
+/* ============================================================
+   SECTION SHARED
+   ============================================================ */
+.section { padding: 110px 0; }
+.section--tight { padding: 80px 0; }
+.section--dark { background: var(--surface-1); }
+
+.section__eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  margin-bottom: 16px;
+}
+.section__eyebrow::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--emerald);
+}
+
+.section__title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+.section__title em { font-style: italic; color: var(--emerald); }
+
+.section__body {
+  font-size: 18px; color: var(--white-60);
+  line-height: 1.7; font-weight: 300;
+}
+.section__body strong { color: var(--white); font-weight: 500; }
+
+/* ============================================================
+   PAIN SECTION
+   ============================================================ */
+.pain { position: relative; overflow: hidden; }
+.pain__chaos {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 32px; align-items: center;
+}
+.pain__text { }
+.pain__list { list-style: none; margin-top: 32px; }
+.pain__list li {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px; color: var(--white-70);
+  font-family: var(--font-body);
+}
+.pain__list li:last-child { border-bottom: none; }
+.pain-x {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(244,63,94,.15);
+  color: #f43f5e;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chaos-visual {
+  position: relative;
+  height: 420px;
+}
+.chaos-chat {
+  position: absolute;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px; color: var(--white-60);
+  font-family: var(--font-body);
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  animation: float-chaos var(--dur, 6s) ease-in-out infinite var(--del, 0s) alternate;
+}
+@keyframes float-chaos {
+  0%   { transform: translate(0,0) rotate(var(--rot1, -1deg)); }
+  100% { transform: translate(var(--tx, 4px), var(--ty, -6px)) rotate(var(--rot2, 1deg)); }
+}
+.chaos-chat__num {
+  font-family: var(--font-sans);
+  font-size: 18px; font-weight: 700;
+  color: #f43f5e;
+  display: block; margin-bottom: 4px;
+}
+.chaos-arrow {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 64px; font-style: italic;
+  color: var(--emerald);
+  opacity: .15;
+}
+
+/* ============================================================
+   FEATURES
+   ============================================================ */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.feature-card {
+  background: var(--surface-1);
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: background .25s;
+  cursor: default;
+}
+.feature-card:hover { background: var(--surface-2); }
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+  transform: scaleX(0);
+  transition: transform .4s ease;
+}
+.feature-card:hover::after { transform: scaleX(1); }
+
+.feature-card--wide { grid-column: span 2; }
+.feature-card--tall { grid-row: span 2; }
+
+.feature-icon {
+  width: 44px; height: 44px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  transition: box-shadow .25s;
+}
+.feature-card:hover .feature-icon {
+  box-shadow: 0 0 20px rgba(16,185,129,.2);
+}
+.feature-icon svg { width: 22px; height: 22px; stroke: var(--emerald); }
+.feature-title {
+  font-family: var(--font-sans);
+  font-size: 17px; font-weight: 700;
+  color: var(--white); margin-bottom: 10px;
+  letter-spacing: -.01em;
+}
+.feature-body {
+  font-size: 14px; color: var(--white-50);
+  line-height: 1.65; font-family: var(--font-body);
+}
+.feature-body strong { color: var(--white-70); font-weight: 500; }
+
+.feature-visual {
+  margin-top: 24px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-size: 13px;
+}
+.fv-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.fv-row:last-child { border-bottom: none; }
+.fv-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.fv-text { flex: 1; color: var(--white-60); font-family: var(--font-body); }
+.fv-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 20px;
+  font-family: var(--font-sans); font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.fvb--g { background: var(--emerald-dim); color: var(--emerald); }
+.fvb--v { background: var(--violet-dim); color: #a78bfa; }
+.fvb--a { background: rgba(245,158,11,.15); color: #fbbf24; }
+
+/* ============================================================
+   PROMPT LIBRARY — THE BIG FEATURE
+   ============================================================ */
+.prompt-section {
+  position: relative; overflow: hidden;
+}
+.prompt-glow {
+  position: absolute;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
+  pointer-events: none;
+}
+.prompt-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+.prompt-cards {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.prompt-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: all .25s ease;
+  cursor: default;
+}
+.prompt-card:hover {
+  border-color: rgba(16,185,129,.3);
+  background: var(--surface-3);
+  transform: translateX(4px);
+}
+.prompt-card.featured {
+  border-color: rgba(139,92,246,.35);
+  background: linear-gradient(135deg, var(--surface-3), rgba(139,92,246,.05));
+}
+.prompt-emoji {
+  font-size: 24px; flex-shrink: 0; margin-top: 2px;
+}
+.prompt-card-content {}
+.prompt-card-title {
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 600;
+  color: var(--white); margin-bottom: 4px;
+}
+.prompt-card-preview {
+  font-size: 12px; color: var(--white-40);
+  font-family: var(--font-body); line-height: 1.5;
+}
+.prompt-card-tag {
+  font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
+  margin-top: 8px; display: inline-block;
+}
+.pct--li { background: var(--violet-dim); color: #a78bfa; }
+.pct--premium {
+  background: linear-gradient(135deg, rgba(139,92,246,.3), rgba(16,185,129,.2));
+  color: var(--white-70);
+}
+
+.prompt-pack-card {
+  background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(16,185,129,.08));
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-top: 16px;
+  position: relative; overflow: hidden;
+}
+.ppc-shine {
+  position: absolute; top: -50%; right: -30%;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,.04) 0%, transparent 60%);
+  border-radius: 50%; pointer-events: none;
+}
+.ppc-title {
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: #a78bfa; margin-bottom: 8px;
+}
+.ppc-headline {
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 700;
+  color: var(--white); margin-bottom: 10px; line-height: 1.2;
+}
+.ppc-body { font-size: 14px; color: var(--white-60); line-height: 1.6; font-family: var(--font-body); }
+.ppc-list {
+  list-style: none; margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.ppc-list li {
+  font-size: 13px; color: var(--white-70); font-family: var(--font-body);
+  display: flex; align-items: center; gap: 6px;
+}
+.ppc-list li::before { content: '→'; color: var(--emerald); font-weight: 700; }
+
+/* ============================================================
+   HOW IT WORKS
+   ============================================================ */
+.steps {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+  position: relative;
+}
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 30px; left: calc(16.66% + 16px); right: calc(16.66% + 16px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), var(--emerald), var(--border));
+}
+.step-card { text-align: center; position: relative; }
+.step-num {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 22px; font-weight: 700;
+  color: var(--emerald);
+  margin: 0 auto 24px;
+  position: relative; z-index: 1;
+}
+.step-title {
+  font-family: var(--font-sans);
+  font-size: 17px; font-weight: 700;
+  color: var(--white); margin-bottom: 10px;
+}
+.step-body { font-size: 14px; color: var(--white-50); line-height: 1.65; font-family: var(--font-body); }
+
+/* ============================================================
+   FOUNDER STORY
+   ============================================================ */
+.founder {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+.founder-quote {
+  position: relative;
+  padding: 32px 36px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+}
+.founder-quote::before {
+  content: '"';
+  position: absolute;
+  top: -20px; left: 24px;
+  font-family: var(--font-display);
+  font-size: 100px; line-height: 1;
+  color: var(--emerald); opacity: .3;
+}
+.fq-text {
+  font-family: var(--font-display);
+  font-size: 20px; font-style: italic;
+  color: var(--white); line-height: 1.55;
+  position: relative; z-index: 1;
+}
+.founder-meta {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 20px;
+}
+.founder-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald), #0d9488);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-sans); font-size: 18px; font-weight: 700;
+  color: #05231a; flex-shrink: 0;
+}
+.founder-name {
+  font-family: var(--font-sans);
+  font-size: 15px; font-weight: 700; color: var(--white);
+}
+.founder-role { font-size: 13px; color: var(--white-50); font-family: var(--font-body); }
+.founder-text-block .section__body { font-size: 16px; line-height: 1.8; }
+.founder-checks { list-style: none; margin-top: 24px; }
+.founder-checks li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 15px; color: var(--white-70);
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-family: var(--font-body);
+}
+.founder-checks li:last-child { border-bottom: none; }
+.check-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--emerald-dim); border: 1px solid rgba(16,185,129,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--emerald); flex-shrink: 0; margin-top: 2px;
+}
+
+/* ============================================================
+   PRICING
+   ============================================================ */
+.pricing-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 20px; max-width: 760px; margin: 0 auto;
+}
+.pricing-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  position: relative; overflow: hidden;
+  transition: border-color .3s;
+}
+.pricing-card--pro {
+  border-color: rgba(16,185,129,.3);
+  background: linear-gradient(160deg, var(--surface-3), rgba(16,185,129,.04));
+}
+.pricing-card--pro::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--violet), var(--emerald));
+}
+.pricing-badge {
+  position: absolute; top: 20px; right: 20px;
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--emerald-dim); color: var(--emerald);
+  font-family: var(--font-sans);
+}
+.pricing-plan {
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--white-50); margin-bottom: 16px;
+}
+.pricing-price {
+  display: flex; align-items: baseline; gap: 4px;
+  margin-bottom: 8px;
+}
+.price-num {
+  font-family: var(--font-display);
+  font-size: 52px; font-weight: 700;
+  color: var(--white); letter-spacing: -.03em;
+  line-height: 1;
+}
+.price-per { font-size: 15px; color: var(--white-50); font-family: var(--font-body); }
+.pricing-alt { font-size: 13px; color: var(--white-40); margin-bottom: 24px; font-family: var(--font-body); }
+.pricing-alt strong { color: var(--emerald); font-weight: 500; }
+.pricing-sep { height: 1px; background: var(--border); margin: 24px 0; }
+.pricing-list { list-style: none; }
+.pricing-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px; color: var(--white-70);
+  padding: 7px 0; font-family: var(--font-body);
+}
+.pricing-list li.dim { color: var(--white-30); }
+.pl-check {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--emerald-dim); color: var(--emerald);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; flex-shrink: 0; margin-top: 1px;
+}
+.pl-check.dim { background: var(--white-05); color: var(--white-30); }
+.pl-check.pro { background: linear-gradient(135deg, var(--violet-dim), var(--emerald-dim)); color: var(--emerald); }
+.pricing-cta { margin-top: 28px; width: 100%; justify-content: center; }
+.btn--full { width: 100%; justify-content: center; }
+
+.pricing-grid-three {
+  display: grid; grid-template-columns: 1fr 1.12fr 1fr;
+  gap: 16px; max-width: 920px; margin: 0 auto;
+  align-items: start;
+}
+.pricing-card--lifetime {
+  transform: translateY(-10px);
+  box-shadow: 0 24px 60px rgba(16,185,129,.12), 0 0 0 1px rgba(16,185,129,.2);
+}
+.pricing-card--yearly .pricing-badge-alt {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px; margin-bottom: 10px;
+  background: rgba(16,185,129,.15); color: var(--emerald);
+  font-family: var(--font-sans);
+}
+.pricing-card--monthly { border-color: var(--border); }
+.pricing-sub-label {
+  font-size: 12px; color: var(--white-40);
+  font-family: var(--font-body); margin-top: 2px;
+}
+@media (max-width: 900px) {
+  .pricing-grid-three { grid-template-columns: 1fr; max-width: 420px; }
+  .pricing-card--lifetime { transform: none; }
+}
+.toggle-label { font-size: 14px; color: var(--white-50); font-family: var(--font-body); }
+.toggle-label.active { color: var(--white); }
+.toggle-switch {
+  width: 48px; height: 26px;
+  background: var(--surface-4);
+  border: 1px solid var(--border);
+  border-radius: 13px; cursor: pointer;
+  position: relative; transition: background .2s;
+}
+.toggle-switch.on { background: var(--emerald); border-color: var(--emerald); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--white); transition: transform .2s;
+}
+.toggle-switch.on .toggle-thumb { transform: translateX(22px); }
+.toggle-save {
+  background: var(--emerald-dim); color: var(--emerald);
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 20px; font-family: var(--font-sans);
+}
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+.testi-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px;
+}
+.testi-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  transition: border-color .25s;
+}
+.testi-card:hover { border-color: rgba(16,185,129,.2); }
+.testi-stars { color: #fbbf24; font-size: 13px; margin-bottom: 14px; letter-spacing: 2px; }
+.testi-text {
+  font-size: 14px; color: var(--white-70);
+  line-height: 1.7; font-family: var(--font-body);
+  margin-bottom: 18px;
+  font-style: italic;
+}
+.testi-author { display: flex; align-items: center; gap: 10px; }
+.testi-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface-4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.testi-name { font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--white); }
+.testi-role { font-size: 12px; color: var(--white-40); font-family: var(--font-body); }
+
+/* ============================================================
+   FINAL CTA
+   ============================================================ */
+.cta-section {
+  position: relative; overflow: hidden;
+  background: var(--surface-1);
+}
+.cta-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 50%, rgba(16,185,129,.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-inner {
+  text-align: center; position: relative; z-index: 1;
+}
+.cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700; line-height: 1.08;
+  letter-spacing: -.02em; color: var(--white);
+  margin-bottom: 20px;
+}
+.cta-title em { font-style: italic; color: var(--emerald); }
+.cta-sub {
+  font-size: 18px; color: var(--white-60);
+  max-width: 520px; margin: 0 auto 40px;
+  line-height: 1.65; font-weight: 300;
+  font-family: var(--font-body);
+}
+.cta-actions { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.cta-note { font-size: 13px; color: var(--white-40); margin-top: 14px; font-family: var(--font-body); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  padding: 48px 0 32px;
+  border-top: 1px solid var(--border);
+}
+.footer__top {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px; margin-bottom: 48px;
+}
+.footer__brand-text {
+  font-size: 14px; color: var(--white-40); line-height: 1.7;
+  margin-top: 12px; font-family: var(--font-body);
+}
+.footer__col-title {
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--white-50); margin-bottom: 16px;
+}
+.footer__links { list-style: none; }
+.footer__links li { margin-bottom: 10px; }
+.footer__links a {
+  font-size: 14px; color: var(--white-40);
+  font-family: var(--font-body); transition: color .2s;
+}
+.footer__links a:hover { color: var(--white); }
+.footer__bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 24px; border-top: 1px solid var(--border);
+  flex-wrap: wrap; gap: 12px;
+}
+.footer__copy { font-size: 13px; color: var(--white-40); font-family: var(--font-body); }
+.footer__copy span { color: var(--emerald); }
+
+/* ============================================================
+   CHROME EXTENSION BADGE
+   ============================================================ */
+.chrome-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 18px 8px 10px;
+  font-size: 13px; color: var(--white-70);
+  font-family: var(--font-sans); font-weight: 500;
+  transition: all .2s;
+  cursor: pointer;
+}
+.chrome-badge:hover { border-color: rgba(255,255,255,.2); background: var(--surface-4); }
+.chrome-logo {
+  width: 28px; height: 28px;
+  background: conic-gradient(from 0deg, #ea4335 0 120deg, #fbbc04 120deg 240deg, #34a853 240deg 360deg);
+  border-radius: 50%; flex-shrink: 0;
+  position: relative; overflow: hidden;
+}
+.chrome-logo::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  background: var(--surface-3);
+  border-radius: 50%;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .mockup-body { grid-template-columns: 1fr; }
+  .mockup-sidebar { display: none; }
+  .mockup-body { height: 280px; }
+  .pain__chaos { grid-template-columns: 1fr; }
+  .chaos-visual { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .feature-card--wide { grid-column: span 1; }
+  .prompt-layout { grid-template-columns: 1fr; gap: 48px; }
+  .steps { grid-template-columns: 1fr; }
+  .steps::before { display: none; }
+  .founder { grid-template-columns: 1fr; gap: 48px; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+  .testi-grid { grid-template-columns: 1fr; }
+  .footer__top { grid-template-columns: 1fr 1fr; }
+  .nav__links { display: none; }
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--surface-3); }
+
+/* faded white values for half-step opacities */
+.white-50 { color: rgba(241,243,246,.5); }
+.white-60 { color: rgba(241,243,246,.6); }
+.white-30 { color: rgba(241,243,246,.3); }
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<nav class="nav" id="navbar">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">
+        <img src="icon.png" alt="ChatFolder" style="width:32px;height:32px;border-radius:8px;display:block;">
+        ChatFolder
+      </a>
+      <ul class="nav__links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#prompts">Prompts</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#story">Our Story</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+      <div class="nav__cta">
+        <a href="#pricing" class="btn btn--ghost">See pricing</a>
+        <a href="#" class="btn btn--primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Add to Chrome — Free
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero">
+  <div class="hero__blob hero__blob--1"></div>
+  <div class="hero__blob hero__blob--2"></div>
+  <div class="hero__blob hero__blob--3"></div>
+  <div class="hero__grid"></div>
+
+  <div class="hero__inner">
+    <div class="hero__badge">
+      <div class="hero__badge-dot"></div>
+      Built by a LinkedIn ghostwriter · for LinkedIn creators
+    </div>
+
+    <h1 class="hero__headline">
+      Your ChatGPT is<br>
+      <em>a graveyard</em> of<br>
+      great ideas.
+    </h1>
+
+    <p class="hero__sub">
+      You've written hundreds of prompts. You've had <strong>brilliant conversations.</strong>
+      And you'll never find any of them again.<br>
+      ChatFolder changes that — in 30 seconds.
+    </p>
+
+    <div class="hero__actions">
+      <a href="#" class="btn btn--primary btn--large">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Install Free — Chrome Extension
+      </a>
+      <div class="chrome-badge">
+        <div class="chrome-logo"></div>
+        Available on Chrome Web Store
+      </div>
+    </div>
+
+    <p class="hero__meta">Free to install · <span>No credit card required</span> · Premium from £2.99/month</p>
+  </div>
+
+  <!-- Animated Mockup -->
+  <div class="hero__mockup container">
+    <div class="hero__mockup-glow"></div>
+    <div class="mockup-window">
+      <div class="mockup-bar">
+        <div class="mockup-dot mockup-dot--r"></div>
+        <div class="mockup-dot mockup-dot--y"></div>
+        <div class="mockup-dot mockup-dot--g"></div>
+        <div class="mockup-url">chat.openai.com — organized by ChatFolder ✦</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-sidebar">
+          <div class="mockup-sidebar-header">My Folders</div>
+
+          <div class="folder-item active">
+            <div class="folder-icon fi--green"></div>
+            <span class="folder-label">LinkedIn Content</span>
+            <span class="folder-count">24</span>
+          </div>
+          <div class="folder-item">
+            <div class="folder-icon fi--violet"></div>
+            <span class="folder-label">Client Work</span>
+            <span class="folder-count">18</span>
+          </div>
+          <div class="folder-item">
+            <div class="folder-icon fi--amber"></div>
+            <span class="folder-label">SaaS Strategy</span>
+            <span class="folder-count">31</span>
+          </div>
+          <div class="folder-item">
+            <div class="folder-icon fi--blue"></div>
+            <span class="folder-label">Product Ideas</span>
+            <span class="folder-count">9</span>
+          </div>
+          <div class="folder-item">
+            <div class="folder-icon fi--rose"></div>
+            <span class="folder-label">Email Campaigns</span>
+            <span class="folder-count">15</span>
+          </div>
+          <div class="folder-item">
+            <div class="folder-icon fi--teal"></div>
+            <span class="folder-label">Research</span>
+            <span class="folder-count">42</span>
+          </div>
+
+          <div class="mockup-divider"></div>
+          <div class="mockup-section-label">Labels</div>
+          <div class="tag-item"><div class="tag-dot" style="background:#10B981"></div><span class="tag-label white-50" style="font-size:12px;color:rgba(241,243,246,.55)">High priority</span></div>
+          <div class="tag-item"><div class="tag-dot" style="background:#8B5CF6"></div><span class="tag-label white-50" style="font-size:12px;color:rgba(241,243,246,.55)">Client</span></div>
+          <div class="tag-item"><div class="tag-dot" style="background:#f59e0b"></div><span class="tag-label white-50" style="font-size:12px;color:rgba(241,243,246,.55)">Draft</span></div>
+        </div>
+        <div class="mockup-main">
+          <div class="chat-header">
+            <div class="chat-header-title">📁 LinkedIn Content — 24 chats</div>
+            <div class="chat-tags-row">
+              <span class="chat-tag ct--g">Ghostwriting</span>
+              <span class="chat-tag ct--v">Hooks</span>
+            </div>
+          </div>
+
+          <div class="chat-item featured">
+            <div class="chat-avatar" style="background:rgba(16,185,129,.15);font-size:18px">✍️</div>
+            <div class="chat-content">
+              <div class="chat-title">SaaS founder hook framework — 15 variations</div>
+              <div class="chat-preview">Write me 15 LinkedIn hook variations for a founder who...</div>
+            </div>
+            <div class="chat-time">2h ago</div>
+          </div>
+
+          <div class="chat-item">
+            <div class="chat-avatar" style="background:rgba(139,92,246,.15);font-size:18px">💡</div>
+            <div class="chat-content">
+              <div class="chat-title">Carousel post: "Things I wish I knew before building in public"</div>
+              <div class="chat-preview">Create a 10-slide carousel with compelling visual copy...</div>
+            </div>
+            <div class="chat-time">Yesterday</div>
+          </div>
+
+          <div class="chat-item">
+            <div class="chat-avatar" style="background:rgba(245,158,11,.15);font-size:18px">🎯</div>
+            <div class="chat-content">
+              <div class="chat-title">Thought leadership post: AI tools for content creators</div>
+              <div class="chat-preview">I'm a LinkedIn ghostwriter helping SaaS founders. Write...</div>
+            </div>
+            <div class="chat-time">2d ago</div>
+          </div>
+
+          <div class="mockup-command">
+            <div class="cmd-icon">⌘</div>
+            <div class="cmd-text">Search all chats, move to folder, add note...</div>
+            <div class="cmd-kbd">⌘K</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SOCIAL PROOF
+     ============================================================ -->
+<div class="proof-bar">
+  <div class="container">
+    <div class="proof-bar__inner">
+      <div class="proof-stat">
+        <span class="stars">★★★★★</span>
+        <span class="proof-stat__label">5-star rated</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-stat">
+        <span class="proof-stat__num">100+</span>
+        <span class="proof-stat__label">Built-in prompts</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-stat">
+        <span class="proof-stat__num">30s</span>
+        <span class="proof-stat__label">Setup time</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-stat">
+        <span class="proof-stat__num">∞</span>
+        <span class="proof-stat__label">Chats organized</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-stat">
+        <span class="proof-stat__num">0</span>
+        <span class="proof-stat__label">Credit card to start</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAIN SECTION
+     ============================================================ -->
+<section class="section pain" id="problem">
+  <div class="container">
+    <div class="pain__chaos">
+      <div class="pain__text reveal">
+        <div class="section__eyebrow">The problem</div>
+        <h2 class="section__title">You're using a $20B AI tool like a <em>sticky note.</em></h2>
+        <p class="section__body" style="margin-bottom:0">ChatGPT is the most powerful creative tool ever built. But without organization, it's just a feed of conversations you'll never find again.</p>
+
+        <ul class="pain__list">
+          <li>
+            <div class="pain-x">✕</div>
+            <div>Your best content ideas are buried in chats named <em>"Untitled"</em> from 6 months ago</div>
+          </li>
+          <li>
+            <div class="pain-x">✕</div>
+            <div>You rewrite the same prompt <strong>from scratch</strong> every single time — because you can't find the one that worked</div>
+          </li>
+          <li>
+            <div class="pain-x">✕</div>
+            <div>Context-switching between client work, your own content, and product building is <strong>killing your flow</strong></div>
+          </li>
+          <li>
+            <div class="pain-x">✕</div>
+            <div>Everything lives on one device — your best ideas aren't there when you need them on another</div>
+          </li>
+          <li>
+            <div class="pain-x">✕</div>
+            <div>You're a professional who helps clients <strong>build clarity</strong> — but your own AI workspace is chaos</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="chaos-visual reveal reveal-delay-2">
+        <div class="chaos-chat" style="top:20px;left:30px;--dur:7s;--del:0s;--rot1:-2deg;--rot2:2deg;--tx:8px;--ty:-10px;">
+          <span class="chaos-chat__num">847</span>
+          untitled chats...
+        </div>
+        <div class="chaos-chat" style="top:80px;right:10px;--dur:8s;--del:.5s;--rot1:1deg;--rot2:-1deg;--tx:-6px;--ty:8px;">
+          "write me a hook for..."
+        </div>
+        <div class="chaos-chat" style="top:165px;left:20px;--dur:6s;--del:1s;--rot1:-1deg;--rot2:2deg;--tx:10px;--ty:-5px;">
+          "new conversation" #342
+        </div>
+        <div class="chaos-chat" style="top:240px;right:20px;--dur:9s;--del:.3s;--rot1:2deg;--rot2:-2deg;--tx:-8px;--ty:12px;">
+          "can you help me with..."
+        </div>
+        <div class="chaos-chat" style="top:310px;left:50px;--dur:7s;--del:.8s;--rot1:-1deg;--rot2:1deg;--tx:6px;--ty:-8px;">
+          Client brief — which one?
+        </div>
+        <div class="chaos-chat" style="top:375px;right:30px;--dur:8s;--del:.2s;--rot1:1deg;--rot2:-1deg;--tx:-10px;--ty:6px;">
+          "LinkedIn post about..."
+        </div>
+        <div class="chaos-arrow" style="bottom:30px;left:50%;transform:translateX(-50%)">→</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FEATURES
+     ============================================================ -->
+<section class="section section--dark" id="features">
+  <div class="container">
+    <div style="text-align:center;max-width:600px;margin:0 auto 64px" class="reveal">
+      <div class="section__eyebrow" style="justify-content:center">Everything you need</div>
+      <h2 class="section__title">Your ChatGPT.<br><em>Fully organized.</em></h2>
+      <p class="section__body" style="font-size:16px">One extension. Zero learning curve. Works the moment you install it.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card feature-card--wide reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="feature-title">Folders, Nested Folders & Drag-Drop</div>
+        <div class="feature-body">Organize every conversation into folders that make sense for <strong>how you actually work.</strong> Nest folders inside folders. Drag chats between them. Color-code by client, project, or topic.</div>
+        <div class="feature-visual">
+          <div class="fv-row"><div class="fv-dot" style="background:#10B981"></div><span class="fv-text">📁 LinkedIn Content</span><span class="fv-badge fvb--g">24 chats</span></div>
+          <div class="fv-row" style="padding-left:28px"><div class="fv-dot" style="background:rgba(16,185,129,.4)"></div><span class="fv-text">↳ Hooks & Openings</span><span class="fv-badge fvb--g">8</span></div>
+          <div class="fv-row" style="padding-left:28px"><div class="fv-dot" style="background:rgba(16,185,129,.4)"></div><span class="fv-text">↳ Carousels</span><span class="fv-badge fvb--g">11</span></div>
+          <div class="fv-row"><div class="fv-dot" style="background:#8B5CF6"></div><span class="fv-text">📁 Client — Acme Corp</span><span class="fv-badge fvb--v">18 chats</span></div>
+        </div>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <div class="feature-title">Full-History Search</div>
+        <div class="feature-body">Find <strong>any conversation</strong> from years ago in seconds. Searches full content — not just titles.</div>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="feature-title">Chat Notes & Labels</div>
+        <div class="feature-body">Attach private notes to any conversation. Apply <strong>colored labels</strong> so you see context at a glance before opening.</div>
+        <div class="feature-visual" style="margin-top:16px">
+          <div class="fv-row"><span class="fv-badge fvb--g">Client</span>&nbsp;<span class="fv-badge fvb--v">Premium</span>&nbsp;<span class="fv-badge fvb--a">Draft</span></div>
+        </div>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="feature-title">⌘K Command Palette</div>
+        <div class="feature-body">One keystroke to move a chat, add a bookmark, search, create a folder, or fire a prompt. <strong>Keyboard-native. Zero friction.</strong></div>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10H3M21 6H3M21 14H3M21 18H3"/></svg>
+        </div>
+        <div class="feature-title">Message Navigator</div>
+        <div class="feature-body">Jump to any message in a long conversation instantly. Search <strong>within a chat.</strong> Never scroll forever again.</div>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="feature-title">Cross-Device Sync</div>
+        <div class="feature-body">Your folders, bookmarks, and prompts sync <strong>instantly across every device</strong> — works offline too.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PROMPT LIBRARY
+     ============================================================ -->
+<section class="section prompt-section" id="prompts">
+  <div class="prompt-glow"></div>
+  <div class="container">
+    <div class="prompt-layout">
+      <div class="reveal">
+        <div class="section__eyebrow">The unfair advantage</div>
+        <h2 class="section__title">100+ prompts.<br>Built-in. <em>Ready to use.</em></h2>
+        <p class="section__body">Stop recreating the wheel. ChatFolder comes with a full prompt library across 12 categories — plus the ability to save, organize, and reuse your own best prompts forever.</p>
+
+        <div class="prompt-pack-card" style="margin-top:36px">
+          <div class="ppc-shine"></div>
+          <div class="ppc-title">✦ Pro Exclusive</div>
+          <div class="ppc-headline">The LinkedIn Creator<br>Prompt Pack</div>
+          <div class="ppc-body">50 hand-crafted prompts by a working LinkedIn ghostwriter — the same frameworks used to build founder brands with hundreds of thousands of followers.</div>
+          <ul class="ppc-list">
+            <li>Hook frameworks</li>
+            <li>Carousel scripts</li>
+            <li>Thought leadership</li>
+            <li>Ghostwriting briefs</li>
+            <li>DM templates</li>
+            <li>Post audits</li>
+            <li>Engagement replies</li>
+            <li>Content repurposing</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prompt-cards reveal reveal-delay-2">
+        <div class="prompt-card featured">
+          <div class="prompt-emoji">🪝</div>
+          <div class="prompt-card-content">
+            <div class="prompt-card-title">The Founder Hook Framework</div>
+            <div class="prompt-card-preview">"Write 15 LinkedIn hooks for a [role] who [result]. Lead with the outcome, not the process..."</div>
+            <div class="prompt-card-tag pct--premium">✦ Creator Pack</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-emoji">🎠</div>
+          <div class="prompt-card-content">
+            <div class="prompt-card-title">10-Slide Carousel Generator</div>
+            <div class="prompt-card-preview">"Create a LinkedIn carousel with a bold opener, 8 insight slides, and a CTA. Topic:..."</div>
+            <div class="prompt-card-tag pct--li">LinkedIn</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-emoji">💼</div>
+          <div class="prompt-card-content">
+            <div class="prompt-card-title">Client Ghostwriting Brief</div>
+            <div class="prompt-card-preview">"I'm ghostwriting for [person]. Their voice is [adjectives]. Write a post about..."</div>
+            <div class="prompt-card-tag pct--premium">✦ Creator Pack</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-emoji">📊</div>
+          <div class="prompt-card-content">
+            <div class="prompt-card-title">SaaS Positioning Statement</div>
+            <div class="prompt-card-preview">"We help [ICP] achieve [outcome] without [pain point]. Rewrite this 5 ways..."</div>
+            <div class="prompt-card-tag pct--li">Business</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-emoji">🔍</div>
+          <div class="prompt-card-content">
+            <div class="prompt-card-title">Post Audit & Optimization</div>
+            <div class="prompt-card-preview">"Audit this LinkedIn post for hook strength, readability, and CTA clarity. Then rewrite..."</div>
+            <div class="prompt-card-tag pct--premium">✦ Creator Pack</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     HOW IT WORKS
+     ============================================================ -->
+<section class="section section--dark section--tight">
+  <div class="container">
+    <div style="text-align:center;max-width:560px;margin:0 auto 64px" class="reveal">
+      <div class="section__eyebrow" style="justify-content:center">Up and running in minutes</div>
+      <h2 class="section__title">Three steps to <em>never lose</em> a great idea again</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step-card reveal">
+        <div class="step-num">1</div>
+        <div class="step-title">Install in 30 seconds</div>
+        <div class="step-body">Add ChatFolder from the Chrome Web Store. It activates instantly on ChatGPT — no setup, no configuration, no code.</div>
+      </div>
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-num">2</div>
+        <div class="step-title">Create your first folder</div>
+        <div class="step-body">Name it anything — "LinkedIn Content," "Client Work," "My SaaS." Drag your existing chats in. Color-code it. Done.</div>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-num">3</div>
+        <div class="step-title">Unlock your prompt library</div>
+        <div class="step-body">Open the library, find a prompt that fits, fire it into ChatGPT with one click. Save your best work for later. Never rewrite from scratch.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOUNDER STORY
+     ============================================================ -->
+<section class="section" id="story">
+  <div class="container">
+    <div class="founder">
+      <div class="reveal">
+        <div class="founder-quote">
+          <div class="fq-text">"I built ChatFolder because I was living this problem every single day. I'm a LinkedIn ghostwriter. I use ChatGPT for everything. And I had 800 conversations I could barely navigate."</div>
+          <div class="founder-meta">
+            <div class="founder-avatar">M</div>
+            <div>
+              <div class="founder-name">Malik Muneeb</div>
+              <div class="founder-role">LinkedIn Ghostwriter & Strategist · Founder of ChatFolder</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a href="https://www.linkedin.com/in/muneeb-developer/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--emerald);font-family:var(--font-sans);font-weight:600;border:1px solid rgba(16,185,129,.3);border-radius:100px;padding:8px 16px;transition:all .2s;" onmouseover="this.style.background='rgba(16,185,129,.08)'" onmouseout="this.style.background='transparent'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            Follow on LinkedIn
+          </a>
+          <a href="https://www.linkedin.com/in/muneeb-developer/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--white-60);font-family:var(--font-sans);font-weight:600;border:1px solid var(--border);border-radius:100px;padding:8px 16px;transition:all .2s;" onmouseover="this.style.background='var(--white-05)';this.style.color='var(--white)'" onmouseout="this.style.background='transparent';this.style.color='rgba(241,243,246,.6)'">
+            Building in public →
+          </a>
+        </div>
+      </div>
+
+      <div class="founder-text-block reveal reveal-delay-2">
+        <div class="section__eyebrow">Why this exists</div>
+        <h2 class="section__title" style="font-size:clamp(28px,3vw,42px)">Made by a creator,<br>for <em>creators.</em></h2>
+        <p class="section__body">Most productivity tools are built by developers who've never written a LinkedIn post in their life. ChatFolder is different — every feature was designed around the actual workflow of someone who uses AI to build a personal brand and run a business.</p>
+
+        <ul class="founder-checks" style="margin-top:28px">
+          <li>
+            <div class="check-icon">✓</div>
+            The prompt library was built from <strong>real ghostwriting workflows</strong> — not generic templates
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            The folder structure mirrors how <strong>content creators actually think</strong> — by client, by campaign, by format
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            <strong>Cross-device sync exists</strong> because writing happens everywhere — laptop, tablet, coffee shop
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            Every update is informed by the same audience I write for — <strong>LinkedIn creators and SaaS founders</strong>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TESTIMONIALS
+     ============================================================ -->
+<section class="section section--dark section--tight">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:52px" class="reveal">
+      <div class="section__eyebrow" style="justify-content:center">What creators are saying</div>
+      <h2 class="section__title" style="font-size:clamp(28px,3vw,42px)">Built for people like <em>you.</em></h2>
+    </div>
+
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"I was drowning in 600+ ChatGPT chats with no way to find anything. ChatFolder took 30 seconds to install and now I have my entire content system organized. Game-changer for ghostwriting."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">🖊</div>
+          <div>
+            <div class="testi-name">Sarah K.</div>
+            <div class="testi-role">LinkedIn Ghostwriter · 12k followers</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"The prompt library alone is worth it. I have my positioning prompts, product copy prompts, and investor pitch prompts all in one place. I've used it every single day for 3 months."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">🚀</div>
+          <div>
+            <div class="testi-name">Marcus L.</div>
+            <div class="testi-role">SaaS Founder · Building in public</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"Finally an organizer built by someone who actually uses ChatGPT for content. The LinkedIn Creator Pack is exactly what I needed — it's like someone read my mind."</div>
+        <div class="testi-author">
+          <div class="testi-avatar">📱</div>
+          <div>
+            <div class="testi-name">Priya M.</div>
+            <div class="testi-role">Content Strategist · B2B SaaS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PRICING
+     ============================================================ -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div style="text-align:center;max-width:560px;margin:0 auto 20px" class="reveal">
+      <div class="section__eyebrow" style="justify-content:center">Simple pricing</div>
+      <h2 class="section__title">Start free.<br><em>Upgrade when you're ready.</em></h2>
+    </div>
+
+    <div class="pricing-grid-three reveal reveal-delay-1">
+
+      <!-- MONTHLY -->
+      <div class="pricing-card pricing-card--monthly">
+        <div class="pricing-plan">Monthly</div>
+        <div class="pricing-sub-label">Try risk-free · Cancel anytime</div>
+        <div class="pricing-price" style="margin-top:12px">
+          <span class="price-num">£2.99</span>
+          <span class="price-per">/mo</span>
+        </div>
+        <div class="pricing-alt">Billed monthly, cancel anytime</div>
+        <a href="#" class="btn btn--ghost btn--full" style="margin-top:20px">Start Monthly →</a>
+        <div class="pricing-sep"></div>
+        <ul class="pricing-list">
+          <li><div class="pl-check pro">✓</div> Unlimited folders</li>
+          <li><div class="pl-check pro">✓</div> Nested folders</li>
+          <li><div class="pl-check pro">✓</div> Unlimited labels</li>
+          <li><div class="pl-check pro">✓</div> Full prompt library</li>
+          <li><div class="pl-check pro">✓</div> LinkedIn Creator Pack</li>
+          <li><div class="pl-check pro">✓</div> Bulk operations</li>
+          <li><div class="pl-check pro">✓</div> Export / Import</li>
+          <li><div class="pl-check pro">✓</div> Cross-device sync</li>
+        </ul>
+      </div>
+
+      <!-- LIFETIME — hero card -->
+      <div class="pricing-card pricing-card--pro pricing-card--lifetime">
+        <div class="pricing-badge">⭐ Most Popular · Best Value</div>
+        <div class="pricing-plan" style="margin-top:8px">Lifetime</div>
+        <div class="pricing-sub-label">Pay once · Own forever</div>
+        <div class="pricing-price" style="margin-top:12px;align-items:baseline;gap:6px">
+          <span style="font-size:15px;color:var(--white-40);text-decoration:line-through;font-family:var(--font-body);font-weight:400">£71.76</span>
+          <span class="price-num">£49.90</span>
+        </div>
+        <div class="pricing-alt">Saves <strong>£21.86</strong> vs 2 years monthly</div>
+        <a href="#" class="btn btn--primary btn--full" style="margin-top:20px">
+          Get Lifetime Access →
+        </a>
+        <div class="pricing-sep"></div>
+        <ul class="pricing-list">
+          <li><div class="pl-check pro">✓</div> <strong>Everything, forever</strong></li>
+          <li><div class="pl-check pro">✓</div> Unlimited folders</li>
+          <li><div class="pl-check pro">✓</div> Nested folders</li>
+          <li><div class="pl-check pro">✓</div> Unlimited labels</li>
+          <li><div class="pl-check pro">✓</div> Full prompt library</li>
+          <li><div class="pl-check pro">✓</div> <strong>LinkedIn Creator Pack</strong></li>
+          <li><div class="pl-check pro">✓</div> Bulk operations</li>
+          <li><div class="pl-check pro">✓</div> All future updates</li>
+          <li><div class="pl-check pro">✓</div> Priority support</li>
+        </ul>
+      </div>
+
+      <!-- YEARLY -->
+      <div class="pricing-card pricing-card--yearly">
+        <div class="pricing-badge-alt">Save 45%</div>
+        <div class="pricing-plan">Yearly</div>
+        <div class="pricing-sub-label">Just £1.66/month · Best for regular users</div>
+        <div class="pricing-price" style="margin-top:12px;align-items:baseline;gap:6px">
+          <span style="font-size:15px;color:var(--white-40);text-decoration:line-through;font-family:var(--font-body);font-weight:400">£35.88</span>
+          <span class="price-num">£19.90</span>
+          <span class="price-per">/yr</span>
+        </div>
+        <div class="pricing-alt">Billed annually · <strong>45% off monthly</strong></div>
+        <a href="#" class="btn btn--ghost btn--full" style="margin-top:20px;border-color:rgba(16,185,129,.35);color:var(--emerald)">Get Yearly Plan →</a>
+        <div class="pricing-sep"></div>
+        <ul class="pricing-list">
+          <li><div class="pl-check pro">✓</div> Unlimited folders</li>
+          <li><div class="pl-check pro">✓</div> Nested folders</li>
+          <li><div class="pl-check pro">✓</div> Unlimited labels</li>
+          <li><div class="pl-check pro">✓</div> Full prompt library</li>
+          <li><div class="pl-check pro">✓</div> LinkedIn Creator Pack</li>
+          <li><div class="pl-check pro">✓</div> Bulk operations</li>
+          <li><div class="pl-check pro">✓</div> Export / Import</li>
+          <li><div class="pl-check pro">✓</div> Cross-device sync</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;margin-top:24px;font-size:13px;color:var(--white-40);font-family:var(--font-body)" class="reveal">
+      All plans unlock every premium feature · Cancel anytime · Works on Chrome
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FINAL CTA
+     ============================================================ -->
+<section class="section cta-section">
+  <div class="cta-bg"></div>
+  <div class="container">
+    <div class="cta-inner reveal">
+      <h2 class="cta-title">You create clarity<br>for your clients.<br>Now <em>create it</em> for yourself.</h2>
+      <p class="cta-sub">Join thousands of LinkedIn creators and SaaS founders who've turned their ChatGPT chaos into a focused, organized workspace.</p>
+      <div class="cta-actions">
+        <a href="#" class="btn btn--primary btn--xl">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Add ChatFolder — It's Free
+        </a>
+        <a href="#pricing" class="btn btn--ghost btn--xl">See Pro features →</a>
+      </div>
+      <div class="cta-note">Free to install · Monthly from £2.99 · Lifetime access £49.90 · Cancel anytime</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div>
+        <div class="nav__logo" style="font-size:16px">
+          <img src="icon.png" alt="ChatFolder" style="width:28px;height:28px;border-radius:7px;display:block;">
+          ChatFolder
+        </div>
+        <p class="footer__brand-text" style="max-width:280px;margin-top:14px">The AI workspace built for LinkedIn creators and SaaS founders. Organize your ChatGPT. Find your best ideas. Build your brand.</p>
+      </div>
+      <div>
+        <div class="footer__col-title">Product</div>
+        <ul class="footer__links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#prompts">Prompt Library</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Creator</div>
+        <ul class="footer__links">
+          <li><a href="#story">Our Story</a></li>
+          <li><a href="https://www.linkedin.com/in/muneeb-developer/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="https://www.linkedin.com/in/muneeb-developer/" target="_blank" rel="noopener">Building in Public</a></li>
+          <li><a href="blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer__col-title">Support</div>
+        <ul class="footer__links">
+          <li><a href="mailto:support@chatfolder.chat">Help Center</a></li>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="privacy-policy.html">Terms of Service</a></li>
+          <li><a href="mailto:support@chatfolder.chat">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div class="footer__copy">© 2026 ChatFolder. Made with intent by <span>Malik Muneeb</span> · LinkedIn Ghostwriter & Strategist.</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white-40);font-family:var(--font-body)">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:pulse-dot 2s ease infinite"></div>
+        All systems operational
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* Navbar scroll effect */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
+
+/* Scroll reveal */
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+/* Billing toggle removed — 3-tier pricing */
+
+/* Floating chat animations start staggered */
+document.querySelectorAll('.chaos-chat').forEach((el, i) => {
+  el.style.animationDelay = (i * 0.4) + 's';
+});
+
+/* Smooth scroll for nav links */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if (id === '#') return;
+    const target = document.querySelector(id);
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+/* Number counter animation for proof stats */
+function animateCounter(el, target, suffix = '') {
+  let start = 0;
+  const duration = 1800;
+  const step = (timestamp) => {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.round(eased * target);
+    el.textContent = value + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+const proofBar = document.querySelector('.proof-bar');
+let counted = false;
+const proofObserver = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !counted) {
+    counted = true;
+    const nums = proofBar.querySelectorAll('.proof-stat__num');
+    // 100+, 30s, ∞, 0 — only animate numeric ones
+    if (nums[1]) animateCounter(nums[1], 100, '+');
+  }
+});
+proofObserver.observe(proofBar);
+</script>
+</body>
+</html>
