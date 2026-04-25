@@ -209,6 +209,11 @@ strong { color: var(--white); font-weight: 600; }
       <li>We do <strong>not</strong> track activity on any website other than chatgpt.com.</li>
     </ul>
 
+    <h2>1a. How ChatFolder Reads Your Chat List</h2>
+    <p>To display your conversation list inside the extension, ChatFolder reads your <strong>ChatGPT session token</strong> directly from ChatGPT's own authentication endpoint (<code>chatgpt.com/api/auth/session</code>). This is the same session that already exists in your browser when you are logged in to ChatGPT — ChatFolder does not create or store separate credentials.</p>
+    <p>That token is used solely to call ChatGPT's conversations API (<code>chatgpt.com/backend-api/conversations</code>) to retrieve your conversation <strong>titles, IDs, and URLs</strong> — the same information visible in the ChatGPT sidebar. This allows ChatFolder to let you organise, search, and folder those conversations.</p>
+    <p><strong>The session token is never stored</strong> by ChatFolder — it is used in-memory for the duration of the API call and then discarded. Your actual conversation <strong>messages are never read or transmitted</strong> by ChatFolder under any circumstances.</p>
+
     <h2>2. How We Use Your Data</h2>
     <ul>
       <li>Authenticate your account and sync data across devices.</li>
