@@ -1153,24 +1153,489 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
-   RESPONSIVE
+   MOBILE MENU (hidden on desktop, shown on mobile)
    ============================================================ */
-@media (max-width: 900px) {
-  .mockup-body { grid-template-columns: 1fr; }
-  .mockup-sidebar { display: none; }
-  .mockup-body { height: 280px; }
-  .pain__chaos { grid-template-columns: 1fr; }
-  .chaos-visual { display: none; }
-  .features-grid { grid-template-columns: 1fr; }
-  .feature-card--wide { grid-column: span 1; }
-  .prompt-layout { grid-template-columns: 1fr; gap: 48px; }
-  .steps { grid-template-columns: 1fr; }
-  .steps::before { display: none; }
-  .founder { grid-template-columns: 1fr; gap: 48px; }
-  .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
-  .testi-grid { grid-template-columns: 1fr; }
-  .footer__top { grid-template-columns: 1fr 1fr; }
+.mobile-menu-btn {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.mobile-menu-btn svg { width: 20px; height: 20px; stroke: var(--white-70); }
+.mobile-menu-btn:hover { background: var(--surface-4); }
+
+.mobile-menu {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(7,8,12,0.96);
+  backdrop-filter: blur(20px);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  padding: 24px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.mobile-menu.open { display: flex; opacity: 1; }
+.mobile-menu__top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 32px;
+}
+.mobile-menu__close {
+  width: 40px; height: 40px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.mobile-menu__close svg { width: 20px; height: 20px; stroke: var(--white-70); }
+.mobile-menu__links {
+  list-style: none;
+  display: flex; flex-direction: column;
+  gap: 4px;
+  margin-bottom: 32px;
+}
+.mobile-menu__links a {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 22px; font-weight: 600;
+  color: var(--white);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.mobile-menu__cta {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-top: auto;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+.mobile-menu__cta .btn { width: 100%; justify-content: center; padding: 16px; font-size: 15px; }
+
+/* ============================================================
+   STICKY MOBILE CTA BAR (high-conversion pattern)
+   ============================================================ */
+.sticky-cta {
+  display: none;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 90;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: rgba(7,8,12,0.92);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  align-items: center; gap: 12px;
+  transform: translateY(110%);
+  transition: transform .25s ease;
+}
+.sticky-cta__price {
+  font-size: 11px; color: var(--white-50);
+  font-family: var(--font-body); line-height: 1.3;
+  flex-shrink: 0;
+}
+.sticky-cta__price strong { color: var(--white); font-weight: 600; font-size: 13px; display: block; }
+.sticky-cta__btn {
+  flex: 1;
+  background: var(--emerald);
+  color: #05231a;
+  border: none; border-radius: 10px;
+  padding: 13px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 0 24px rgba(16,185,129,.3);
+  cursor: pointer;
+}
+.sticky-cta__btn:active { transform: scale(.97); }
+.sticky-cta__btn svg { width: 16px; height: 16px; }
+
+/* ============================================================
+   FAQ SECTION
+   ============================================================ */
+.faq-list {
+  max-width: 760px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  gap: 12px;
+}
+.faq-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.faq-item[open] { border-color: rgba(16,185,129,.3); }
+.faq-item summary {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-sans);
+  font-size: 16px; font-weight: 600;
+  color: var(--white);
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+';
+  font-family: var(--font-display);
+  font-size: 24px; line-height: 1;
+  color: var(--emerald);
+  transition: transform .25s;
+  flex-shrink: 0;
+}
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item-body {
+  padding: 0 24px 22px;
+  font-size: 15px; line-height: 1.7;
+  color: var(--white-70);
+  font-family: var(--font-body);
+}
+.faq-item-body strong { color: var(--white); font-weight: 600; }
+
+/* ============================================================
+   FOLDER BEFORE/AFTER VISUAL
+   ============================================================ */
+.compare {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 18px; align-items: stretch;
+  margin-top: 32px;
+}
+.compare__col {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  min-height: 240px;
+}
+.compare__col--before { border-color: rgba(244,63,94,.18); }
+.compare__col--after { border-color: rgba(16,185,129,.25); background: linear-gradient(160deg, var(--surface-2), rgba(16,185,129,.04)); }
+.compare__label {
+  font-family: var(--font-sans);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.compare__col--before .compare__label { color: #f43f5e; }
+.compare__col--after .compare__label { color: var(--emerald); }
+.compare__arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-style: italic;
+  font-size: 32px; color: var(--emerald);
+  width: 40px;
+}
+.compare__row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  margin-bottom: 4px;
+}
+.compare__row--before {
+  color: var(--white-40);
+  background: rgba(255,255,255,.02);
+  font-style: italic;
+}
+.compare__row--after {
+  color: var(--white-70);
+  background: var(--white-05);
+}
+.compare__row--folder {
+  color: var(--white);
+  font-weight: 600;
+  background: var(--emerald-dim);
+  font-style: normal;
+}
+.compare__row--nested { padding-left: 22px; font-size: 11px; color: var(--white-60); }
+.compare__row--nested::before { content: '↳'; color: var(--emerald); margin-right: 4px; }
+
+/* ============================================================
+   RESPONSIVE — TABLET (≤1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+  .container { padding: 0 20px; }
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .feature-card--wide { grid-column: span 2; }
+  .footer__top { grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+  .prompt-layout { gap: 56px; }
+  .founder { gap: 56px; }
+  .section { padding: 90px 0; }
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET PORTRAIT / LARGE PHONE (≤768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  body { font-size: 15px; }
+
+  /* Section padding */
+  .section { padding: 64px 0; }
+  .section--tight { padding: 48px 0; }
+
+  /* Headlines */
+  .section__title { font-size: clamp(28px, 7vw, 38px); }
+  .section__body { font-size: 16px; line-height: 1.65; }
+
+  /* NAV */
+  .nav { padding: 12px 0; }
   .nav__links { display: none; }
+  .nav__cta .btn--ghost { display: none; }
+  .nav__cta .btn--primary { padding: 9px 16px; font-size: 13px; }
+  .nav__cta .btn--primary svg { width: 14px; height: 14px; }
+  .mobile-menu-btn { display: flex; }
+  .nav__logo { font-size: 16px; }
+  .nav__cta { gap: 8px; }
+
+  /* HERO */
+  .hero { padding: 96px 0 48px; min-height: auto; }
+  .hero__headline {
+    font-size: clamp(34px, 9vw, 50px);
+    line-height: 1.1;
+    padding: 0 4px;
+  }
+  .hero__headline br { display: none; }
+  .hero__sub { font-size: 16px; padding: 0 8px; }
+  .hero__sub br { display: none; }
+  .hero__badge { font-size: 11px; padding: 5px 13px; margin-bottom: 24px; letter-spacing: .02em; }
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .hero__actions .btn { width: 100%; justify-content: center; }
+  .hero__actions .btn--large { padding: 16px 24px; font-size: 15px; }
+  .chrome-badge { justify-content: center; }
+  .hero__meta { font-size: 12px; padding: 0 16px; line-height: 1.6; }
+  .hero__mockup { margin: 48px auto 0; padding: 0 16px; }
+
+  /* Mockup — keep folders visible on mobile (don't hide the demo!) */
+  .mockup-body {
+    grid-template-columns: 124px 1fr;
+    height: 360px;
+  }
+  .mockup-sidebar {
+    display: block;
+    padding: 12px 8px;
+  }
+  .mockup-sidebar-header { font-size: 9px; margin-bottom: 8px; }
+  .folder-item { padding: 6px 6px; gap: 6px; }
+  .folder-icon { width: 18px; height: 14px; }
+  .folder-label { font-size: 11px; }
+  .folder-count { display: none; }
+  .mockup-divider { margin: 8px 0; }
+  .mockup-section-label, .tag-item { display: none; }
+  .mockup-bar { padding: 10px 12px; }
+  .mockup-dot { width: 9px; height: 9px; }
+  .mockup-url { font-size: 10px; padding: 4px 8px; }
+  .mockup-main { padding: 14px; }
+  .chat-header { margin-bottom: 12px; }
+  .chat-header-title { font-size: 11px; }
+  .chat-tags-row { display: none; }
+  .chat-item { padding: 8px 10px; gap: 8px; margin-bottom: 5px; }
+  .chat-avatar { width: 26px; height: 26px; font-size: 14px !important; }
+  .chat-title { font-size: 12px; }
+  .chat-preview { font-size: 10px; }
+  .chat-time { display: none; }
+  .mockup-command { left: 14px; right: 14px; padding: 8px 12px; }
+  .cmd-text { font-size: 11px; }
+  .cmd-kbd { font-size: 9px; }
+
+  /* PAIN — show simplified chaos viz on mobile */
+  .pain__chaos { grid-template-columns: 1fr; gap: 32px; }
+  .chaos-visual {
+    display: block;
+    height: 220px;
+    margin: 0;
+    order: 2;
+    overflow: hidden;
+  }
+  .chaos-chat { font-size: 11px; padding: 7px 10px; }
+  .chaos-chat__num { font-size: 14px; }
+  /* Hide overflowing chaos-chats on small screens — keep top 3 + arrow */
+  .chaos-chat:nth-of-type(n+4) { display: none; }
+  .chaos-arrow { font-size: 38px !important; bottom: 8px !important; }
+  .pain__list li { font-size: 14px; padding: 13px 0; gap: 12px; }
+  .pain-x { width: 22px; height: 22px; font-size: 12px; }
+
+  /* FEATURES */
+  .features-grid { grid-template-columns: 1fr; }
+  .feature-card { padding: 26px 22px; }
+  .feature-card--wide { grid-column: span 1; }
+  .feature-title { font-size: 16px; }
+  .feature-body { font-size: 14px; }
+
+  /* PROMPTS */
+  .prompt-layout { grid-template-columns: 1fr; gap: 36px; }
+  .prompt-pack-card { padding: 24px; }
+  .ppc-headline { font-size: 22px; }
+  .ppc-list { grid-template-columns: 1fr; gap: 4px; }
+  .prompt-card { padding: 14px 16px; }
+  .prompt-card-title { font-size: 13px; }
+  .prompt-card-preview { font-size: 11px; }
+
+  /* STEPS */
+  .steps { grid-template-columns: 1fr; gap: 28px; }
+  .steps::before { display: none; }
+  .step-num { width: 50px; height: 50px; font-size: 19px; margin-bottom: 18px; }
+  .step-title { font-size: 16px; }
+
+  /* FOUNDER */
+  .founder { grid-template-columns: 1fr; gap: 36px; }
+  .founder-quote { padding: 26px 22px; }
+  .fq-text { font-size: 17px; }
+  .founder-checks li { font-size: 14px; padding: 9px 0; }
+
+  /* PRICING */
+  .pricing-grid-three {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+    gap: 14px;
+  }
+  .pricing-card--lifetime { transform: none; }
+  .pricing-card { padding: 28px 22px; }
+  .price-num { font-size: 44px; }
+  .pricing-list li { font-size: 13px; }
+
+  /* TESTIMONIALS */
+  .testi-grid { grid-template-columns: 1fr; gap: 12px; }
+  .testi-card { padding: 22px; }
+  .testi-text { font-size: 14px; margin-bottom: 14px; }
+
+  /* CTA */
+  .cta-actions { flex-direction: column; align-items: stretch; gap: 12px; padding: 0 12px; }
+  .cta-actions .btn { width: 100%; justify-content: center; }
+  .cta-sub { font-size: 16px; padding: 0 8px; }
+
+  /* FOOTER */
+  .footer { padding: 40px 0 24px; padding-bottom: calc(24px + 80px); /* room for sticky CTA */ }
+  .footer__top {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-bottom: 32px;
+  }
+  .footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* PROOF BAR */
+  .proof-bar { padding: 22px 0; }
+  .proof-bar__inner {
+    gap: 18px 28px;
+    justify-content: space-around;
+  }
+  .proof-divider { display: none; }
+  .proof-stat__num { font-size: 22px; }
+  .proof-stat__label { font-size: 11px; }
+  .stars { font-size: 13px; }
+
+  /* COMPARE */
+  .compare { grid-template-columns: 1fr; gap: 12px; }
+  .compare__arrow { transform: rotate(90deg); height: 40px; width: auto; }
+  .compare__col { min-height: 0; }
+
+  /* FAQ */
+  .faq-item summary { padding: 18px 20px; font-size: 15px; }
+  .faq-item-body { padding: 0 20px 20px; font-size: 14px; }
+
+  /* Sticky mobile CTA appears */
+  .sticky-cta { display: flex; }
+
+  /* Reveal animation softer on mobile */
+  .reveal { transform: translateY(20px); }
+}
+
+/* ============================================================
+   RESPONSIVE — PHONE (≤600px)
+   ============================================================ */
+@media (max-width: 600px) {
+  .container { padding: 0 16px; }
+  .container--narrow { padding: 0 16px; }
+  .section { padding: 52px 0; }
+
+  .hero { padding: 84px 0 40px; }
+  .hero__headline { font-size: clamp(28px, 9vw, 38px); }
+  .hero__sub { font-size: 15px; margin-bottom: 28px; }
+  .hero__badge { font-size: 10px; padding: 5px 11px; gap: 6px; }
+  .hero__mockup { margin-top: 36px; padding: 0 12px; }
+
+  .mockup-body {
+    grid-template-columns: 100px 1fr;
+    height: 320px;
+  }
+  .folder-icon { width: 16px; height: 12px; }
+  .folder-label { font-size: 10px; }
+  .mockup-main { padding: 12px; }
+  .chat-item { padding: 7px 9px; }
+  .chat-title { font-size: 11.5px; }
+
+  .section__title { font-size: clamp(24px, 7.5vw, 32px); }
+  .section__eyebrow { font-size: 11px; }
+  .section__body { font-size: 15px; }
+
+  .feature-card { padding: 22px 18px; }
+
+  .prompt-pack-card { padding: 20px 18px; }
+  .ppc-headline { font-size: 20px; }
+
+  .pricing-card { padding: 24px 20px; }
+  .price-num { font-size: 40px; }
+
+  .footer__top { grid-template-columns: 1fr; gap: 24px; }
+
+  .proof-bar { padding: 18px 0; }
+  .proof-bar__inner { gap: 12px 20px; }
+  .proof-stat__num { font-size: 18px; }
+  .proof-stat__label { font-size: 10px; letter-spacing: .06em; }
+
+  /* Sticky CTA tighter */
+  .sticky-cta { padding: 10px 12px; gap: 10px; }
+  .sticky-cta__price { font-size: 10px; }
+  .sticky-cta__price strong { font-size: 12px; }
+  .sticky-cta__btn { padding: 12px 14px; font-size: 13px; }
+}
+
+/* ============================================================
+   RESPONSIVE — SMALL PHONE (≤380px)
+   ============================================================ */
+@media (max-width: 380px) {
+  .container { padding: 0 14px; }
+  .hero__headline { font-size: 28px; }
+  .hero__sub { font-size: 14px; }
+  .section__title { font-size: 24px; }
+
+  .nav__cta .btn--primary { padding: 8px 12px; font-size: 12px; }
+  .nav__logo { font-size: 15px; }
+  .nav__logo img { width: 26px !important; height: 26px !important; }
+
+  .mockup-body { grid-template-columns: 84px 1fr; height: 300px; }
+  .folder-item { padding: 5px 4px; }
+  .folder-icon { width: 14px; height: 10px; }
+  .folder-label { font-size: 9px; }
+
+  .price-num { font-size: 36px; }
+  .feature-card { padding: 20px 16px; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
 }
 
 /* ============================================================
@@ -1204,6 +1669,7 @@ img { max-width: 100%; display: block; }
         <li><a href="#features">Features</a></li>
         <li><a href="#prompts">Prompts</a></li>
         <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#faq">FAQ</a></li>
         <li><a href="#story">Our Story</a></li>
         <li><a href="blog.html">Blog</a></li>
       </ul>
@@ -1213,10 +1679,43 @@ img { max-width: 100%; display: block; }
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Add to Chrome — Free
         </a>
+        <button class="mobile-menu-btn" id="mobileMenuOpen" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
     </div>
   </div>
 </nav>
+
+<!-- ============================================================
+     MOBILE MENU DRAWER
+     ============================================================ -->
+<div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+  <div class="mobile-menu__top">
+    <a href="#" class="nav__logo" style="font-size:16px">
+      <img src="icon.png" alt="ChatFolder" style="width:30px;height:30px;border-radius:7px;display:block;">
+      ChatFolder
+    </a>
+    <button class="mobile-menu__close" id="mobileMenuClose" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <ul class="mobile-menu__links">
+    <li><a href="#features" data-mm-link>Features</a></li>
+    <li><a href="#prompts" data-mm-link>Prompts</a></li>
+    <li><a href="#pricing" data-mm-link>Pricing</a></li>
+    <li><a href="#faq" data-mm-link>FAQ</a></li>
+    <li><a href="#story" data-mm-link>Our Story</a></li>
+    <li><a href="blog.html">Blog</a></li>
+  </ul>
+  <div class="mobile-menu__cta">
+    <a href="#" class="btn btn--primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Add to Chrome — Free
+    </a>
+    <a href="#pricing" data-mm-link class="btn btn--ghost">See pricing →</a>
+  </div>
+</div>
 
 <!-- ============================================================
      HERO
@@ -1256,7 +1755,7 @@ img { max-width: 100%; display: block; }
       </div>
     </div>
 
-    <p class="hero__meta">Free to install · <span>No credit card required</span> · Premium from £3.99/month</p>
+    <p class="hero__meta">Free forever plan · <span>No credit card</span> · 14-day money-back on Premium · Works on Chrome, Edge, Brave, Arc</p>
   </div>
 
   <!-- Animated Mockup -->
@@ -1468,13 +1967,36 @@ img { max-width: 100%; display: block; }
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
         </div>
-        <div class="feature-title">Folders, Nested Folders & Drag-Drop</div>
-        <div class="feature-body">Organize every conversation into folders that make sense for <strong>how you actually work.</strong> Nest folders inside folders. Drag chats between them. Color-code by client, project, or topic.</div>
-        <div class="feature-visual">
-          <div class="fv-row"><div class="fv-dot" style="background:#10B981"></div><span class="fv-text">📁 LinkedIn Content</span><span class="fv-badge fvb--g">24 chats</span></div>
-          <div class="fv-row" style="padding-left:28px"><div class="fv-dot" style="background:rgba(16,185,129,.4)"></div><span class="fv-text">↳ Hooks & Openings</span><span class="fv-badge fvb--g">8</span></div>
-          <div class="fv-row" style="padding-left:28px"><div class="fv-dot" style="background:rgba(16,185,129,.4)"></div><span class="fv-text">↳ Carousels</span><span class="fv-badge fvb--g">11</span></div>
-          <div class="fv-row"><div class="fv-dot" style="background:#8B5CF6"></div><span class="fv-text">📁 Client — Acme Corp</span><span class="fv-badge fvb--v">18 chats</span></div>
+        <div class="feature-title">Folders, Nested Folders &amp; Drag-Drop</div>
+        <div class="feature-body">Turn ChatGPT's endless scroll into a workspace that mirrors <strong>how you actually think.</strong> Color-code folders by client, project, or topic. Nest sub-folders. Drag chats between them. Bulk-move dozens at a time.</div>
+
+        <div class="compare">
+          <div class="compare__col compare__col--before">
+            <div class="compare__label">
+              <span style="width:6px;height:6px;border-radius:50%;background:#f43f5e"></span>
+              Before · ChatGPT default
+            </div>
+            <div class="compare__row compare__row--before">"Untitled"</div>
+            <div class="compare__row compare__row--before">"Untitled"</div>
+            <div class="compare__row compare__row--before">"new conversation"</div>
+            <div class="compare__row compare__row--before">"can you help me with…"</div>
+            <div class="compare__row compare__row--before">"write a hook for…"</div>
+            <div class="compare__row compare__row--before">"Untitled"</div>
+            <div class="compare__row compare__row--before">+ 841 more…</div>
+          </div>
+          <div class="compare__arrow">→</div>
+          <div class="compare__col compare__col--after">
+            <div class="compare__label">
+              <span style="width:6px;height:6px;border-radius:50%;background:#10B981"></span>
+              After · ChatFolder
+            </div>
+            <div class="compare__row compare__row--folder">📁 LinkedIn Content · 24</div>
+            <div class="compare__row compare__row--nested">Hooks &amp; Openings · 8</div>
+            <div class="compare__row compare__row--nested">Carousels · 11</div>
+            <div class="compare__row compare__row--folder" style="background:rgba(139,92,246,.18);color:#fff">📁 Client — Acme Corp · 18</div>
+            <div class="compare__row compare__row--folder" style="background:rgba(245,158,11,.15);color:#fff">📁 SaaS Strategy · 31</div>
+            <div class="compare__row compare__row--after" style="background:transparent;color:rgba(241,243,246,.4);font-size:11px;justify-content:center">Drag · Color · Bulk-move · Nest</div>
+          </div>
         </div>
       </div>
 
@@ -1830,8 +2352,81 @@ img { max-width: 100%; display: block; }
 
     </div>
 
-    <div style="text-align:center;margin-top:24px;font-size:13px;color:var(--white-40);font-family:var(--font-body)" class="reveal">
-      All plans unlock every premium feature · Cancel anytime · Works on Chrome
+    <div class="reveal" style="margin-top:36px;display:flex;flex-wrap:wrap;justify-content:center;gap:14px 28px;font-size:13px;color:var(--white-60);font-family:var(--font-body)">
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;border-radius:50%;background:var(--emerald-dim);color:var(--emerald);display:inline-flex;align-items:center;justify-content:center;font-size:11px">✓</span> 14-day money-back guarantee</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;border-radius:50%;background:var(--emerald-dim);color:var(--emerald);display:inline-flex;align-items:center;justify-content:center;font-size:11px">✓</span> Cancel anytime, one click</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;border-radius:50%;background:var(--emerald-dim);color:var(--emerald);display:inline-flex;align-items:center;justify-content:center;font-size:11px">✓</span> Secure checkout via Lemon Squeezy</span>
+      <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;border-radius:50%;background:var(--emerald-dim);color:var(--emerald);display:inline-flex;align-items:center;justify-content:center;font-size:11px">✓</span> All plans unlock every premium feature</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FAQ SECTION (objection killer)
+     ============================================================ -->
+<section class="section section--dark section--tight" id="faq">
+  <div class="container">
+    <div style="text-align:center;max-width:560px;margin:0 auto 48px" class="reveal">
+      <div class="section__eyebrow" style="justify-content:center">Questions, answered</div>
+      <h2 class="section__title" style="font-size:clamp(28px,3.4vw,42px)">Everything you need to know <em>before</em> installing</h2>
+    </div>
+
+    <div class="faq-list">
+      <details class="faq-item reveal" open>
+        <summary>Is ChatFolder really free? What's the catch?</summary>
+        <div class="faq-item-body">
+          <strong>No catch.</strong> The free plan gives you 3 folders, 5 bookmarks, and 3 saved prompts — enough to organize your most important workflows forever. Upgrade only when you need unlimited folders, the full prompt library, or cross-device sync. <strong>No credit card required to start.</strong>
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>Will it slow down ChatGPT or break with future updates?</summary>
+        <div class="faq-item-body">
+          ChatFolder is a lightweight Chrome extension built specifically for ChatGPT. It runs only on chatgpt.com, adds zero analytics or trackers to the page, and uses native browser storage so it doesn't touch your conversations. We update within 24-48 hours of any major ChatGPT redesign — you'll never be left with a broken tool.
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>Does ChatFolder read my chat messages?</summary>
+        <div class="faq-item-body">
+          <strong>No.</strong> ChatFolder only reads chat <em>titles</em> and the folder structure you create. The actual conversation content never leaves your browser, never reaches our servers, and is never logged. You can review the full <a href="privacy-policy.html" style="color:var(--emerald);text-decoration:underline">privacy policy</a> for details.
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>What happens to my folders if I cancel?</summary>
+        <div class="faq-item-body">
+          Your data is yours. If you cancel a paid plan, you keep <strong>full read access</strong> to all your folders, bookmarks, and prompts. You can also export everything as JSON at any time — no lock-in.
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>Can I get a refund?</summary>
+        <div class="faq-item-body">
+          Yes. <strong>14-day money-back guarantee — no questions asked.</strong> Email <a href="mailto:support@chatfolder.chat" style="color:var(--emerald);text-decoration:underline">support@chatfolder.chat</a> within 14 days of purchase and you'll get a full refund processed by Lemon Squeezy.
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>Does it work on Safari, Firefox, or mobile?</summary>
+        <div class="faq-item-body">
+          Right now ChatFolder is built for <strong>Chrome and Chromium-based browsers</strong> (Edge, Brave, Arc, Opera). A Firefox version is on the roadmap. Mobile browsers don't support extensions — but your folders, bookmarks, and prompts sync across every Chrome desktop you use.
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>Lifetime — what does "forever" actually cover?</summary>
+        <div class="faq-item-body">
+          One payment of £79.99 unlocks <strong>every premium feature, plus every future update we ship</strong>, with no recurring charge ever. If we get acquired or shut down, you keep the version you have plus a full data export. That's the deal — written into our <a href="terms-of-service.html" style="color:var(--emerald);text-decoration:underline">terms</a>.
+        </div>
+      </details>
+
+      <details class="faq-item reveal">
+        <summary>I'm not a "LinkedIn creator" — is this still for me?</summary>
+        <div class="faq-item-body">
+          Absolutely. ChatFolder works for anyone drowning in ChatGPT chats — <strong>students, researchers, devs, marketers, consultants, founders.</strong> The LinkedIn Creator Pack is one of 12 prompt categories. The folders, search, and sync work the same regardless of what you use ChatGPT for.
+        </div>
+      </details>
     </div>
   </div>
 </section>
@@ -1908,14 +2503,55 @@ img { max-width: 100%; display: block; }
 </footer>
 
 <!-- ============================================================
+     STICKY MOBILE CTA (mobile only, visible after hero)
+     ============================================================ -->
+<div class="sticky-cta" id="stickyCta" aria-hidden="true">
+  <div class="sticky-cta__price">
+    Free to install<strong>£3.99/mo · £79.99 lifetime</strong>
+  </div>
+  <a href="#" class="sticky-cta__btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    Add to Chrome
+  </a>
+</div>
+
+<!-- ============================================================
      JAVASCRIPT
      ============================================================ -->
 <script>
-/* Navbar scroll effect */
+/* Navbar scroll effect + sticky CTA visibility */
 const navbar = document.getElementById('navbar');
+const stickyCta = document.getElementById('stickyCta');
+const heroEl = document.querySelector('.hero');
+const ctaShowAfter = () => (heroEl ? heroEl.offsetHeight * 0.7 : 600);
+
 window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 20);
+  const y = window.scrollY;
+  navbar.classList.toggle('scrolled', y > 20);
+  if (stickyCta) {
+    const show = y > ctaShowAfter() && y + window.innerHeight < document.documentElement.scrollHeight - 200;
+    stickyCta.style.transform = show ? 'translateY(0)' : 'translateY(110%)';
+    stickyCta.style.transition = 'transform .25s ease';
+    stickyCta.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }
 }, { passive: true });
+
+/* Mobile menu toggle */
+const mmOpen = document.getElementById('mobileMenuOpen');
+const mmClose = document.getElementById('mobileMenuClose');
+const mm = document.getElementById('mobileMenu');
+function setMenu(open) {
+  if (!mm) return;
+  mm.classList.toggle('open', open);
+  mm.setAttribute('aria-hidden', open ? 'false' : 'true');
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+mmOpen && mmOpen.addEventListener('click', () => setMenu(true));
+mmClose && mmClose.addEventListener('click', () => setMenu(false));
+document.querySelectorAll('[data-mm-link]').forEach(a => {
+  a.addEventListener('click', () => setMenu(false));
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
 
 /* Scroll reveal */
 const reveals = document.querySelectorAll('.reveal');
