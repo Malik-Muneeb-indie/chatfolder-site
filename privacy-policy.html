@@ -233,7 +233,12 @@ strong { color: var(--white); font-weight: 600; }
     </ul>
 
     <h2>3. Data Storage & Security</h2>
-    <p>Your data is stored locally in your browser and encrypted in our Supabase database for syncing. We use Row-Level Security (RLS) to ensure that only you can access your data.</p>
+    <p>Your data is stored in two places:</p>
+    <ul>
+      <li><strong>Locally in your browser</strong> — via Chrome's built-in storage API. This data is <strong>not encrypted on your device</strong>; it is protected by your operating system's user account permissions, the same as any other application data stored on your computer.</li>
+      <li><strong>On our servers (Supabase)</strong> — encrypted at rest and in transit (TLS). We use Row-Level Security (RLS) so only your authenticated account can read or write your data.</li>
+    </ul>
+    <p>If you sign out or delete your account, your server-side data is permanently erased. Local browser data is cleared when you delete the extension.</p>
 
     <h2>4. Your Rights</h2>
     <p>You can delete your account at any time from the extension settings. This will permanently remove all your data from our servers. You can also request a copy of your data by contacting us.</p>
